@@ -1,0 +1,101 @@
+/* Цветовые темы (Catppuccin Mocha и Latte) + frosted glass */
+.theme-mocha {
+  --bg-color: #1e1e2e;
+  --fg-color: #dce0e8;
+  --container-bg: rgba(30, 32, 46, 0.65);
+  --container-blur: 12px;
+  --accent: #f28fad;
+  --slider-track: #575268;
+  --button-bg: #313244;
+  --button-fg: #f5e0dc;
+  --glass-border: 1.5px solid #a6adc8cc;
+}
+.theme-latte {
+  --bg-color: #faf4ed;
+  --fg-color: #4c4f69;
+  --container-bg: rgba(250, 244, 237, 0.7);
+  --container-blur: 10px;
+  --accent: #f2cdcd;
+  --slider-track: #dce0e8;
+  --button-bg: #e6e9ef;
+  --button-fg: #4c4f69;
+  --glass-border: 1.5px solid #b4befe99;
+}
+.theme-frosted-dark {
+  --bg-color: #18181a;
+  --fg-color: #e0e0e0;
+  --container-bg: rgba(24, 24, 26, 0.65);
+  --container-blur: 16px;
+  --accent: #00ff99;
+  --slider-track: #575268;
+  --button-bg: #222;
+  --button-fg: #00ff99;
+  --glass-border: 2px solid #00ff99cc;
+}
+.theme-frosted-light {
+  --bg-color: #f8fafc;
+  --fg-color: #222;
+  --container-bg: rgba(255,255,255,0.7);
+  --container-blur: 14px;
+  --accent: #00b894;
+  --slider-track: #dce0e8;
+  --button-bg: #e6e9ef;
+  --button-fg: #00b894;
+  --glass-border: 2px solid #00b89499;
+}
+
+.wrapper {
+  min-height: 100vh;
+  background: var(--bg-color);
+  color: var(--fg-color);
+  transition: background 0.3s, color 0.3s;
+}
+.app-container {
+  background: var(--container-bg);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(30, 32, 46, 0.25);
+  border: var(--glass-border);
+  backdrop-filter: blur(var(--container-blur));
+  -webkit-backdrop-filter: blur(var(--container-blur));
+  margin: 2.5rem auto;
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.3s, border 0.3s;
+}
+.theme-mocha .app-container {
+  box-shadow: 0 8px 32px 0 #18182599;
+}
+.theme-latte .app-container {
+  box-shadow: 0 8px 32px 0 #b4befe33;
+}
+
+.theme-mocha .power-button {
+  background: var(--accent);
+  color: #181825;
+}
+.theme-latte .power-button {
+  background: var(--accent);
+  color: #fff;
+}
+
+.theme-mocha .slider-group input[type="range"]::-webkit-slider-thumb {
+  background: var(--accent);
+}
+.theme-latte .slider-group input[type="range"]::-webkit-slider-thumb {
+  background: var(--accent);
+}
+
+/* Frosted glass for help modal */
+.help-modal {
+  background: var(--container-bg);
+  border-radius: 16px;
+  border: var(--glass-border);
+  box-shadow: 0 4px 24px 0 rgba(30, 32, 46, 0.18);
+  backdrop-filter: blur(calc(var(--container-blur) * 0.8));
+  -webkit-backdrop-filter: blur(calc(var(--container-blur) * 0.8));
+  padding: 2rem 2.5rem;
+  color: var(--fg-color);
+}

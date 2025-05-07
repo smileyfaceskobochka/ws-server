@@ -1,0 +1,301 @@
+/* Глобальные стили для body и html */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Центрирование главного контейнера и цвета по теме */
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--fg-color);
+}
+
+/* Стили для контейнера приложения с поддержкой frosted glass */
+.app-container {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  padding: 20px;
+  background-color: var(--container-bg);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Кнопка переключения темы */
+.theme-toggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+/* Хедер с иконкой лампы и яркостью */
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Иконка лампы */
+.lamp-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  color: inherit;
+  transition: color 0.3s, filter 0.3s;
+}
+
+.lamp-icon svg {
+  width: 60px;
+  height: 60px;
+  display: block;
+  /* Свечение только по линиям лампы */
+  filter:
+    drop-shadow(0 0 8px currentColor)
+    drop-shadow(0 0 16px currentColor)
+    drop-shadow(0 0 24px currentColor);
+  transition: filter 0.3s;
+}
+
+.power-button[style*='#4caf50'] ~ .lamp-icon, .lamp-icon[style*='brightness(100%)'] {
+  animation: lampPulse 1.2s infinite cubic-bezier(.4,1.4,.6,1);
+}
+@keyframes lampPulse {
+  0%, 100% { box-shadow: 0 0 15px var(--accent), 0 0 0px var(--accent); }
+  50% { box-shadow: 0 0 30px var(--accent), 0 0 12px var(--accent); }
+}
+
+/* Отображение яркости */
+.brightness-display {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 18px;
+}
+
+/* Кнопка питания */
+.power-button {
+  background-color: var(--accent);
+  color: var(--fg-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.18s cubic-bezier(.4,1.4,.6,1), filter 0.18s, box-shadow 0.18s;
+}
+
+.power-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.power-button:active {
+  transform: scale(0.96);
+  filter: brightness(0.95);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* Переключатели (тумблеры) */
+.toggles {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.switch-container {
+  display: flex;
+  align-items: center;
+  margin: 0 15px;
+}
+
+.switch-slider {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 10px;
+  margin-right: 8px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.switch-container input {
+  display: none;
+}
+
+.switch-container input:checked + .switch-slider {
+  background-color: var(--accent);
+}
+
+.switch-container input:checked + .switch-slider::before {
+  transform: translateX(20px);
+}
+
+.switch-label {
+  font-size: 14px;
+}
+
+/* Слайдеры */
+.sliders {
+  display: flex;
+  flex-direction: column;
+}
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.slider-group span {
+  width: 60px;
+  font-size: 14px;
+}
+
+.slider-group input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin: 0 10px;
+  transition: background 0.3s;
+}
+
+.slider-group input[type=range]:focus {
+  outline: none;
+}
+
+.slider-group input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: var(--slider-track);
+  border-radius: 4px;
+}
+
+.slider-group input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  border: 2px solid var(--button-bg);
+  border-radius: 50%;
+  margin-top: -8px;
+  transition: background 0.3s;
+}
+
+.slider-group input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: var(--slider-track);
+  border-radius: 4px;
+}
+
+.slider-group input[type=range]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  border: 2px solid var(--button-bg);
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+/* Кнопка помощи */
+.help-button {
+  background-color: var(--accent);
+  color: var(--fg-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.18s cubic-bezier(.4,1.4,.6,1), filter 0.18s, box-shadow 0.18s;
+}
+
+.help-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.help-button:active {
+  transform: scale(0.96);
+  filter: brightness(0.95);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* Оверлей и модалка помощи */
+.help-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeInBg 0.3s cubic-bezier(.4,1.4,.6,1);
+}
+
+@keyframes fadeInBg {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.help-modal {
+  background-color: var(--container-bg);
+  padding: 20px;
+  border-radius: 16px;
+  width: 80%;
+  max-width: 300px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: fadeScaleIn 0.35s cubic-bezier(.4,1.4,.6,1) both;
+}
+
+@keyframes fadeScaleIn {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.help-modal h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.help-modal button {
+  background-color: var(--accent);
+  color: var(--fg-color);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 15px;
+}
