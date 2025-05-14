@@ -262,7 +262,7 @@ const App: React.FC = () => {
               <div className="help-overlay" onClick={() => setHelpOpen(false)}>
                 <div className="help-modal" onClick={(e) => e.stopPropagation()}>
                   <h2>Помощь</h2>
-                  <p>Информация о приложении умной лампы...</p>
+                  <p>Че зыришь? 😡</p>
                   <button onClick={() => setHelpOpen(false)}>Закрыть</button>
                 </div>
               </div>
