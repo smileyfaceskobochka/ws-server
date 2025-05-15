@@ -35,7 +35,7 @@ const App: React.FC = () => {
 
   // Подключение к WebSocket
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:80/ws/client");
+    const ws = new WebSocket("ws://meowww.su:80/ws/client");
     wsRef.current = ws;
     ws.onopen = () => {
       // Можно запросить состояние, если нужно
