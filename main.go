@@ -22,7 +22,7 @@ type DeviceState struct {
 	AutoBrightness bool     `json:"auto_brightness"`
 	Position       [4]uint8 `json:"position"`
 	AutoPosition   bool     `json:"auto_position"`
-	Distance       float64  `json:"distance"` // NEW field
+	Distance       float64  `json:"distance"`
 }
 
 type Message struct {
@@ -160,7 +160,6 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 
 	h.mu.Lock()
 	h.clients[ws] = true
-	// Send current states (without distance, since we don't store it)
 	for id, st := range h.deviceStates {
 		_ = ws.WriteJSON(Message{Type: "state", ID: id, State: &st})
 	}

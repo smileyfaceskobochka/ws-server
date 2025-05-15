@@ -44,6 +44,7 @@ const App: React.FC = () => {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "state" && msg.id === DEVICE_ID && msg.state) {
+          console.log("Distance:", msg.state.distance, "cm");
           setPower(!!msg.state.power);
           setBrightness(Number(msg.state.brightness));
           setR(Number(msg.state.color?.[0] ?? 0));
@@ -209,7 +210,7 @@ const App: React.FC = () => {
                   onChange={e => {
                     setBrightness(Number(e.target.value));
                   }}
-                  // onMouseUp={e => handleBrightness(Number((e.target as HTMLInputElement).value))}
+                  onMouseUp={e => handleBrightness(Number((e.target as HTMLInputElement).value))}
                 />
               </div>
               <div className="slider-group">
