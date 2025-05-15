@@ -209,7 +209,7 @@ const App: React.FC = () => {
                   onChange={e => {
                     setBrightness(Number(e.target.value));
                   }}
-                  // onMouseUp={e => handleBrightness(Number((e.target as HTMLInputElement).value))}
+                  onMouseUp={e => handleBrightness(Number((e.target as HTMLInputElement).value))}
                 />
               </div>
               <div className="slider-group">
