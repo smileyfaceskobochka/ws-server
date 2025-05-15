@@ -133,13 +133,12 @@ const App: React.FC = () => {
               {/* Иконка лампы с цветом и свечением */}
               <span
                 className="lamp-icon"
-                style={{
-                  color: `rgb(${r},${g},${b})`,
-                  filter: `brightness(${brightness}%)`,
-                  boxShadow: `0 0 24px 6px rgba(${r},${g},${b},0.7)`
-                }}
+
               >
-                <LightBulbIcon />
+                <LightBulbIcon style={{
+                  color: `rgb(${r},${g},${b})`,
+                  filter: `drop-shadow(0px 0px 4px rgba(${r}, ${g}, ${b}, ${brightness}%))`
+                }} />
               </span>
               <div className="brightness-display">Яркость: {brightness}%</div>
               <button className="power-button" onClick={handlePower} style={{background: power ? '#4caf50' : '#888'}}>
@@ -207,8 +206,10 @@ const App: React.FC = () => {
                   min="0"
                   max="100"
                   value={brightness}
-                  onChange={e => setBrightness(Number(e.target.value))}
-                  onMouseUp={e => handleBrightness(Number((e.target as HTMLInputElement).value))}
+                  onChange={e => {
+                    setBrightness(Number(e.target.value));
+                  }}
+                  // onMouseUp={e => handleBrightness(Number((e.target as HTMLInputElement).value))}
                 />
               </div>
               <div className="slider-group">

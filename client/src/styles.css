@@ -20,7 +20,6 @@ body, html {
 /* Стили для контейнера приложения с поддержкой frosted glass */
 .app-container {
   position: relative;
-  width: 90%;
   max-width: 400px;
   padding: 20px;
   background-color: var(--container-bg);
@@ -55,7 +54,7 @@ body, html {
   width: 60px;
   height: 60px;
   color: inherit;
-  transition: color 0.3s, filter 0.3s;
+  /* transition: color 0.3s, filter 0.3s; */
 }
 
 .lamp-icon svg {
@@ -63,11 +62,11 @@ body, html {
   height: 60px;
   display: block;
   /* Свечение только по линиям лампы */
-  filter:
+  /* filter:
     drop-shadow(0 0 8px currentColor)
     drop-shadow(0 0 16px currentColor)
-    drop-shadow(0 0 24px currentColor);
-  transition: filter 0.3s;
+    drop-shadow(0 0 24px currentColor); */
+  /* transition: filter 0.3s; */
 }
 
 .power-button[style*='#4caf50'] ~ .lamp-icon, .lamp-icon[style*='brightness(100%)'] {
