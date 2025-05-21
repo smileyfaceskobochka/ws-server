@@ -8,23 +8,22 @@ import (
 	"path/filepath"
 	"sync"
 
-	//"time"
-
 	"github.com/gorilla/websocket"
 )
 
-// DeviceState now includes Distance
+// DeviceState — состояние устройства, включая три относительных шага
 type DeviceState struct {
 	ID             string   `json:"id"`
 	Power          bool     `json:"power"`
 	Color          [3]uint8 `json:"color"`
 	Brightness     uint8    `json:"brightness"`
 	AutoBrightness bool     `json:"auto_brightness"`
-	Position       [4]uint8 `json:"position"`
+	Position       [3]int32 `json:"position"`
 	AutoPosition   bool     `json:"auto_position"`
 	Distance       float64  `json:"distance"`
 }
 
+// Message — общий формат JSON-сообщения
 type Message struct {
 	Type    string       `json:"type"`
 	ID      string       `json:"id,omitempty"`
@@ -71,82 +70,73 @@ func (h *Hub) handleDevice(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
-	// First message should be register
-	_, rawPayload, err := ws.ReadMessage()
+	// Читаем регистрацию
+	_, raw, err := ws.ReadMessage()
 	if err != nil {
-		log.Println("invalid register from device (read error):", err)
+		log.Println("invalid register from device:", err)
 		h.broadcastLog("invalid register from device: " + err.Error())
 		return
 	}
-	var msg Message
-	if err := json.Unmarshal(rawPayload, &msg); err != nil || msg.Type != "register" || msg.ID == "" {
-		log.Println("invalid register from device (json or type/id):", string(rawPayload))
-		h.broadcastLog("invalid register from device: " + string(rawPayload))
+	var reg Message
+	if err := json.Unmarshal(raw, &reg); err != nil || reg.Type != "register" || reg.ID == "" {
+		log.Println("invalid register payload:", string(raw))
+		h.broadcastLog("invalid register: " + string(raw))
 		return
 	}
-	id := msg.ID
+	id := reg.ID
 
-	// Store connection, closing old if exists
+	// Заменяем старое ws (если было), храним новое
 	h.mu.Lock()
 	if old, ok := h.devices[id]; ok {
 		old.Close()
 	}
 	h.devices[id] = ws
-
-	// Send last known state (if any) to device
+	// При (ре)подключении шлём ему последнее known state как control
 	if st, ok := h.deviceStates[id]; ok {
-		ctrl := Message{Type: "control", State: &st}
-		ctrl.State.ID = id
-		data, _ := json.Marshal(ctrl)
-		ws.WriteMessage(websocket.TextMessage, data)
+		_ = ws.WriteJSON(Message{Type: "control", ID: id, State: &st})
 	}
 	h.mu.Unlock()
 
-	log.Printf("device connected: %s\n", id)
+	log.Printf("device connected: %s", id)
 	h.broadcastLog("device connected: " + id)
 
-	// Read further messages from device
+	// Обрабатываем сообщения от устройства
 	for {
-		var m Message
-		if err := ws.ReadJSON(&m); err != nil {
-			log.Printf("device [%s] disconnected: %v\n", id, err)
+		var msg Message
+		if err := ws.ReadJSON(&msg); err != nil {
+			log.Printf("device [%s] disconnected: %v", id, err)
 			h.broadcastLog("device [" + id + "] disconnected")
 			break
 		}
-		if m.Type == "state" && m.State != nil {
-			st := *m.State
+		switch msg.Type {
+		case "state":
+			if msg.State == nil {
+				continue
+			}
+			st := *msg.State
 			st.ID = id
-			// Extract and remove distance
-			dist := st.Distance
-			st.Distance = 0
-			// Save state without distance
 			h.mu.Lock()
 			h.deviceStates[id] = st
-			// Broadcast to all web-clients with distance
 			for c := range h.clients {
-				stateToSend := st
-				stateToSend.Distance = dist
-				_ = c.WriteJSON(Message{Type: "state", ID: id, State: &stateToSend})
+				_ = c.WriteJSON(Message{Type: "state", ID: id, State: &st})
 			}
 			h.mu.Unlock()
-			log.Printf("state saved and broadcast for device %s: %+v\n", id, st)
-			h.broadcastLog("state saved and broadcast: " + id)
-		}
-		if m.Type == "log" && m.ID == id && m.Message != "" {
-			// Log from device
-			h.broadcastLog("[" + id + "] " + m.Message)
+			log.Printf("state saved for %s: pos=%v", id, st.Position)
+			h.broadcastLog("state saved: " + id)
+		case "log":
+			if msg.Message != "" {
+				h.broadcastLog("[" + id + "] " + msg.Message)
+			}
 		}
 	}
 
-	// Cleanup on disconnect
+	// Очистка
 	h.mu.Lock()
 	if cur, ok := h.devices[id]; ok && cur == ws {
 		delete(h.devices, id)
-		log.Printf("device removed: %s\n", id)
 		h.broadcastLog("device removed: " + id)
-	} else {
-		log.Printf("cleanup skipped for %s: another connection is active\n", id)
 	}
+	delete(h.clients, ws)
 	h.mu.Unlock()
 }
 
@@ -158,6 +148,7 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
+	// Регистрируем нового UI-клиента и шлём текущее состояние
 	h.mu.Lock()
 	h.clients[ws] = true
 	for id, st := range h.deviceStates {
@@ -166,26 +157,36 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 	h.mu.Unlock()
 
 	log.Println("client connected")
-	// Listen for control messages from client
 	for {
-		var m Message
-		if err := ws.ReadJSON(&m); err != nil {
+		var msg Message
+		if err := ws.ReadJSON(&msg); err != nil {
 			log.Println("client disconnected:", err)
 			break
 		}
-		if m.Type == "control" && m.ID != "" && m.State != nil {
+		// UI прислал control
+		if msg.Type == "control" && msg.ID != "" && msg.State != nil {
 			h.mu.Lock()
-			if dev, ok := h.devices[m.ID]; ok {
-				// Forward to device
-				_ = dev.WriteJSON(m)
-				log.Printf("forward to device %s: %v\n", m.ID, m)
-			} else {
-				// No such device
+			dev, ok := h.devices[msg.ID]
+			if !ok {
 				_ = ws.WriteJSON(map[string]string{"type": "error", "message": "Device not found"})
+				h.mu.Unlock()
+				continue
 			}
+
+			// 1) Пересылаем полный control на устройство
+			_ = dev.WriteJSON(msg)
+			log.Printf("forward to device %s: %+v\n", msg.ID, msg.State)
+
+			// 2) Обнуляем только stored.Position, без рассылки UI-клиентам
+			stored := h.deviceStates[msg.ID]
+			stored.Position = [3]int32{0, 0, 0}
+			h.deviceStates[msg.ID] = stored
+
 			h.mu.Unlock()
 		}
 	}
+
+	// Удаляем UI-клиента
 	h.mu.Lock()
 	delete(h.clients, ws)
 	h.mu.Unlock()
@@ -194,13 +195,14 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	addr := flag.String("addr", ":80", "server address")
-	staticDir := flag.String("static", "client/dist", "path to static files")
+	staticDir := flag.String("static", "client/dist", "static files dir")
 	flag.Parse()
 
 	hub := newHub()
-
 	http.HandleFunc("/ws/device", hub.handleDevice)
 	http.HandleFunc("/ws/client", hub.handleClient)
+
+	// Статика
 	fs := http.FileServer(http.Dir(*staticDir))
 	http.Handle("/static/", fs)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
