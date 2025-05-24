@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// DeviceState — состояние устройства, включая три относительных шага
 type DeviceState struct {
 	ID             string   `json:"id"`
 	Power          bool     `json:"power"`
@@ -23,7 +22,6 @@ type DeviceState struct {
 	Distance       float64  `json:"distance"`
 }
 
-// Message — общий формат JSON-сообщения
 type Message struct {
 	Type    string       `json:"type"`
 	ID      string       `json:"id,omitempty"`
@@ -70,7 +68,6 @@ func (h *Hub) handleDevice(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
-	// Читаем регистрацию
 	_, raw, err := ws.ReadMessage()
 	if err != nil {
 		log.Println("invalid register from device:", err)
@@ -85,13 +82,11 @@ func (h *Hub) handleDevice(w http.ResponseWriter, r *http.Request) {
 	}
 	id := reg.ID
 
-	// Заменяем старое ws (если было), храним новое
 	h.mu.Lock()
 	if old, ok := h.devices[id]; ok {
 		old.Close()
 	}
 	h.devices[id] = ws
-	// При (ре)подключении шлём ему последнее known state как control
 	if st, ok := h.deviceStates[id]; ok {
 		_ = ws.WriteJSON(Message{Type: "control", ID: id, State: &st})
 	}
@@ -100,7 +95,6 @@ func (h *Hub) handleDevice(w http.ResponseWriter, r *http.Request) {
 	log.Printf("device connected: %s", id)
 	h.broadcastLog("device connected: " + id)
 
-	// Обрабатываем сообщения от устройства
 	for {
 		var msg Message
 		if err := ws.ReadJSON(&msg); err != nil {
@@ -130,7 +124,6 @@ func (h *Hub) handleDevice(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Очистка
 	h.mu.Lock()
 	if cur, ok := h.devices[id]; ok && cur == ws {
 		delete(h.devices, id)
@@ -148,7 +141,6 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
-	// Регистрируем нового UI-клиента и шлём текущее состояние
 	h.mu.Lock()
 	h.clients[ws] = true
 	for id, st := range h.deviceStates {
@@ -163,7 +155,6 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 			log.Println("client disconnected:", err)
 			break
 		}
-		// UI прислал control
 		if msg.Type == "control" && msg.ID != "" && msg.State != nil {
 			h.mu.Lock()
 			dev, ok := h.devices[msg.ID]
@@ -173,11 +164,9 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			// 1) Пересылаем полный control на устройство
 			_ = dev.WriteJSON(msg)
 			log.Printf("forward to device %s: %+v\n", msg.ID, msg.State)
 
-			// 2) Обнуляем только stored.Position, без рассылки UI-клиентам
 			stored := h.deviceStates[msg.ID]
 			stored.Position = [3]int32{0, 0, 0}
 			h.deviceStates[msg.ID] = stored
@@ -186,7 +175,6 @@ func (h *Hub) handleClient(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Удаляем UI-клиента
 	h.mu.Lock()
 	delete(h.clients, ws)
 	h.mu.Unlock()
@@ -202,7 +190,6 @@ func main() {
 	http.HandleFunc("/ws/device", hub.handleDevice)
 	http.HandleFunc("/ws/client", hub.handleClient)
 
-	// Статика
 	fs := http.FileServer(http.Dir(*staticDir))
 	http.Handle("/static/", fs)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

@@ -15,7 +15,6 @@ type FullState = {
 };
 
 const App: React.FC = () => {
-  // -- темы и UI-стейты --
   const themeOptions = [
     { value: 'mocha', label: 'Catppuccin Mocha' },
     { value: 'latte', label: 'Catppuccin Latte' },
@@ -48,7 +47,7 @@ const App: React.FC = () => {
 
   // подключение WS
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.3.4:80/ws/client");
+    const ws = new WebSocket("ws://meowww.su:80/ws/client");
     wsRef.current = ws;
     ws.onmessage = e => {
       const msg = JSON.parse(e.data);
@@ -61,7 +60,6 @@ const App: React.FC = () => {
         setG(s.color[1] ?? 0);
         setB(s.color[2] ?? 0);
         setAutoBrightness(!!s.auto_brightness);
-        // обновляем ctrlRef (сбрасываем позицию)
         ctrlRef.current = {
           power: !!s.power,
           brightness: Number(s.brightness),
@@ -75,7 +73,6 @@ const App: React.FC = () => {
     return () => { ws.close(); };
   }, []);
 
-  // шлём весь пакет
   const sendControlFull = () => {
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -93,7 +90,6 @@ const App: React.FC = () => {
     setPower(next);
     // фиксируем в ctrlRef
     ctrlRef.current.power = next;
-    // ОБНУЛЯЕМ позицию
     ctrlRef.current.position = [0, 0, 0];
     sendControlFull();
   };
@@ -102,8 +98,6 @@ const App: React.FC = () => {
   const changeBrightness = (v: number) => {
     setBrightness(v);
     ctrlRef.current.brightness = v;
-    // ОБНУЛЯЕМ позицию
-    ctrlRef.current.position = [0, 0, 0];
     sendControlFull();
   };
 
@@ -113,8 +107,6 @@ const App: React.FC = () => {
     col[idx] = v;
     setR(col[0]); setG(col[1]); setB(col[2]);
     ctrlRef.current.color = col;
-    // ОБНУЛЯЕМ позицию
-    ctrlRef.current.position = [0, 0, 0];
     sendControlFull();
   };
 
@@ -123,8 +115,6 @@ const App: React.FC = () => {
     const next = !autoBrightness;
     setAutoBrightness(next);
     ctrlRef.current.auto_brightness = next;
-    // ОБНУЛЯЕМ позицию
-    ctrlRef.current.position = [0, 0, 0];
     sendControlFull();
   };
 
@@ -134,7 +124,6 @@ const App: React.FC = () => {
     pos[motor] = delta;
     ctrlRef.current.position = pos;
     sendControlFull();
-    // сбрасываем поле ввода сразу в UI (но ctrlRef.pos уже отправился!)
     setStepInputs([0, 0, 0]);
   };
 
@@ -144,7 +133,6 @@ const App: React.FC = () => {
         <div className={`wrapper theme-${theme}`}>
           <div className="app-container">
 
-            {/* Тема */}
             <div style={{display:'flex', justifyContent:'flex-end'}}>
               <select value={theme} onChange={e=>setTheme(e.target.value as any)}>
                 {themeOptions.map(o=>(
@@ -153,7 +141,6 @@ const App: React.FC = () => {
               </select>
             </div>
 
-            {/* Power + Иконка */}
             <div className="header">
               <LightBulbIcon
                 style={{
@@ -171,7 +158,6 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            {/* Авто-яркость */}
             <div className="toggles">
               <label>
                 <input
@@ -182,7 +168,6 @@ const App: React.FC = () => {
               </label>
             </div>
 
-            {/* Слайдеры цвета и яркости */}
             <div className="sliders">
               <div>
                 R <input type="range" min={0} max={255} value={r}
@@ -202,7 +187,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Панель шаговых моторов */}
             <div className="motors-control">
               {[0,1,2].map(idx => (
                 <div key={idx} className="motor-row">

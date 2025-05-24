@@ -6,7 +6,6 @@
   text-align: center;
 }
 
-/* Стили для логотипа */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -35,7 +34,6 @@
   }
 }
 
-/* Стили для карточек и текста */
 .card {
   padding: 2em;
 }
